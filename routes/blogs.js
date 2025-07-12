@@ -29,13 +29,14 @@ router.post('/createpvtblog',fetchuser,[
 ], async(req,res)=>{
     try{
         const {title , content , imageurl , isprivate }=req.body;
+        
         const errors = validationResult(req);
         if(!errors.isEmpty()){
             return res.status(400).json({ errors: errors.array() });
         }
         
         const blog = new Blog({
-            title, content ,imageurl , isprivate, user:req.user.id
+            title, content ,imageurl , isprivate, author:req.user.id
         });
         const  savedBlog = await blog.save();
         res.json(savedBlog);
@@ -48,11 +49,69 @@ router.post('/createpvtblog',fetchuser,[
 //Route2: /api/blogs/fetchblogs	GET	Retrieves all published blogs with author details	Public
 router.get('/fetchblogs', async(req,res)=>{
   try{
-    const blogs = await Blog.find({isprivate: false})
+    const blogs = await Blog.find({isprivate: false}).populate("author", "username");
     res.json(blogs);
   }catch(error){
     console.error(error.message);
       res.status(500).send("Internal server error");
+  }
+})
+
+//Route 3: /api/blogs/getblog/:id	GET	Retrieves a single blog post by its unique ID	Public
+router.get('/getblog/:id',async(req,res)=>{
+  try{
+    let blog = await Blog.findById(req.params.id);
+    if (!blog) return res.status(404).send("Not Found!");
+
+    res.json(blog);
+  } catch (error){
+    console.error(error.message);
+    res.status(500).send("Internal server error");
+  }
+})
+
+//Route:4 /api/blogs/updateblog/:id	PUT	Updates a blog post by ID (only if the logged-in user is the author)	Private (author only)
+router.put('/updateblog/:id', fetchuser,async(req,res)=>{
+  const { title, content, imageurl, isprivate }= req.body;
+
+  //create a newBlog object
+  const newBlog={};
+  if(title) newBlog.title=title;
+  if(content) newBlog.content=content;
+  if(imageurl) newBlog.imageurl= imageurl;
+  if(typeof isprivate === 'boolean') newBlog.isprivate= isprivate;
+
+  try{
+    let blog = await Blog.findById(req.params.id);
+    if (!blog) return res.status(404).send("Not Found!");
+
+      // Allow update only if user owns this note
+      if (blog.author.toString() !== req.user.id) {
+          return res.status(401).send("Not Allowed!");
+      }
+      blog = await Blog.findByIdAndUpdate(req.params.id, { $set: newBlog }, { new: true });
+      res.json({ blog });
+  }catch(error){
+    console.error(error.message);
+    res.status(500).send("Internal server error");
+  }
+})
+
+//Route:4 /api/blogs/deleteblog/:id	DELETE	Deletes a blog post by ID (only if the logged-in user is the author)	Private (author only)
+router.delete('/deleteblog/:id',fetchuser,async(req,res)=>{
+  try{
+    let blog= await Blog.findById(req.params.id);
+    if(!blog) return res.status(404).send("Not Found!");
+
+    // Allow delete only if user owns this note
+    if (blog.author.toString() !== req.user.id) {
+        return res.status(401).send("Not Allowed!");
+    }
+    blog =await Blog.findByIdAndDelete(req.params.id);
+    res.json({"success":"Blog has been deleted" ,blog :blog})
+  }catch(error){
+    console.error(error.message);
+    res.status(500).send("Internal server error");
   }
 })
 
