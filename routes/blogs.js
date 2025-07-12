@@ -5,6 +5,8 @@ const { body , validationResult }=require('express-validator');
 const router =express.Router();
 const multer = require('multer');
 const path = require('path');
+const mongoose = require('mongoose');
+const User = require('../models/User')
 
 const storage = multer.diskStorage({
   destination: './uploads/',
@@ -114,5 +116,30 @@ router.delete('/deleteblog/:id',fetchuser,async(req,res)=>{
     res.status(500).send("Internal server error");
   }
 })
+
+//Route:5 /api/blogs/authorblog/username/:username to get blogs of a particular author
+router.get('/authorblog/username/:username', async (req, res) => {
+  try {
+    const username = req.params.username;
+
+    // Find the user by username
+    const user = await User.findOne({ username: username });
+    if (!user) {
+      return res.status(404).json({ error: "Author not found" });
+    }
+
+    // Find blogs with author ObjectId
+    const blogs = await Blog.find({ author: user._id });
+
+    res.json(blogs);
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal server error");
+  }
+});
+
+
+
+
 
 module.exports = router;
