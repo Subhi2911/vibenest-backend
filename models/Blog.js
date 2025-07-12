@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const BlogSchema = new mongoose.Schema({
   author: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'username'
+    ref: 'user'
   },
   imageurl: {
     type: String,
