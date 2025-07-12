@@ -1,0 +1,7 @@
+Route	Method	Description	Access
+/api/blogs/	POST	Creates a new blog post with title, content, tags, etc.	Private (only logged-in users)
+/api/blogs/	GET	Retrieves all published blogs with author details	Public
+/api/blogs/:id	GET	Retrieves a single blog post by its unique ID	Public
+/api/blogs/:id	PUT	Updates a blog post by ID (only if the logged-in user is the author)	Private (author only)
+/api/blogs/:id	DELETE	Deletes a blog post by ID (only if the logged-in user is the author)	Private (author only)
+
