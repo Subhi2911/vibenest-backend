@@ -5,22 +5,15 @@ const { body, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
 var jwt = require('jsonwebtoken');
 const fetchuser = require('../middleware/fetchuser');
-const multer = require("multer");
+
 require('dotenv').config({ path: '.env.local' });
-const path = require('path');
+
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Configure multer for profile image upload
-const storage = multer.diskStorage({
-  destination: './uploads/profile/',
-  filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname)); // e.g., 1720712341.png
-  }
-});
-const upload = multer({ storage });
+
 
 // PUT /api/user/profile-image
-router.put('/profile-image', fetchuser, upload.single('image'), async (req, res) => {
+router.put('/profile-image', fetchuser, async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ error: 'No image uploaded' });
 

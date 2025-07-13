@@ -25,7 +25,18 @@ const BlogSchema = new mongoose.Schema({
     type: String,
     enum: ['draft', 'published'],
     default: 'draft'
+  },
+  ratings: [
+  {
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'user' },
+    rating: Number
   }
+  ],
+  averageRating: {
+    type: Number,
+    default: 0
+}
+
 }, { timestamps: true });
 
 module.exports = mongoose.model('blogs', BlogSchema);

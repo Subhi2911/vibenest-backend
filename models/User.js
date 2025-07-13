@@ -1,10 +1,5 @@
 const mongoose = require('mongoose');
 const UserSchema = mongoose.Schema({
-    profileimage:{
-        type:String,
-        default:'/uploads/profile/default-user.png',
-        match: [/^\/uploads\/profile\/.*\.(jpg|jpeg|png)$/, 'Invalid image path']
-    },
     username:{
         type:String,
         required:true,
