@@ -5,7 +5,6 @@ const { body , validationResult }=require('express-validator');
 const router =express.Router();
 const multer = require('multer');
 const path = require('path');
-const mongoose = require('mongoose');
 const User = require('../models/User')
 
 const storage = multer.diskStorage({
@@ -129,7 +128,7 @@ router.get('/authorblog/username/:username', async (req, res) => {
     }
 
     // Find blogs with author ObjectId
-    const blogs = await Blog.find({ author: user._id });
+    const blogs = await Blog.find({ author: user._id }).populate('author', 'username');
 
     res.json(blogs);
   } catch (error) {
