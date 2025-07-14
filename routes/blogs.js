@@ -26,10 +26,11 @@ router.post('/createpvtblog', fetchuser, [
   body('title', 'Enter a valid Title').isLength({ min: 3 }),
   body('content', 'Content must be at least 5 characters').isLength({ min: 5 }),
   body('imageurl', 'Insert an image related to blog'),
-  body('private', 'Do you want the blog to be private?')
+  body('private', 'Do you want the blog to be private?'),
+  body('category', 'Which category best represents your blog?')
 ], async (req, res) => {
   try {
-    const { title, content, imageurl, isprivate } = req.body;
+    const { title, content, imageurl, isprivate, category } = req.body;
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -37,7 +38,7 @@ router.post('/createpvtblog', fetchuser, [
     }
 
     const blog = new Blog({
-      title, content, imageurl, isprivate, author: req.user.id
+      title, content, imageurl, isprivate,category, author : req.user.id
     });
     const savedBlog = await blog.save();
     res.json(savedBlog);
@@ -73,14 +74,16 @@ router.get('/getblog/:id', async (req, res) => {
 
 //Route:4 /api/blogs/updateblog/:id	PUT	Updates a blog post by ID (only if the logged-in user is the author)	Private (author only)
 router.put('/updateblog/:id', fetchuser, async (req, res) => {
-  const { title, content, imageurl, isprivate } = req.body;
+  const {title, content, imageurl, isprivate, category } = req.body;
 
   //create a newBlog object
   const newBlog = {};
+  
   if (title) newBlog.title = title;
   if (content) newBlog.content = content;
   if (imageurl) newBlog.imageurl = imageurl;
   if (typeof isprivate === 'boolean') newBlog.isprivate = isprivate;
+  if (category) newBlog.category = category;
 
   try {
     let blog = await Blog.findById(req.params.id);
@@ -177,6 +180,20 @@ router.post('/:id/rate', fetchuser, async (req, res) => {
   }
 });
 
+//Route:8 fetching blogs by categories
+router.get('/categoryblog/:category',async(req,res)=>{
+  try{
+    const category =req.params.category;
+    const blogs= await Blog.find({category : category}).populate("author","username")
+    if(!blogs){
+      return res.status(404).json({ error: 'Blogs not found' });
+    }
+    res.json(blogs)
+  }catch(error){
+    console.error('Error saving rating:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+})
 
 
 

@@ -141,7 +141,49 @@ router.post('/getuser', fetchuser, async (req, res) => {
     }
 });
 
+//Route 4: get user details of other user (limited data)
+router.post('/getanotheruser/:username', fetchuser, async (req, res) => {
 
+    try {
+        const username = req.params.username;
+        const user = await User.findOne({ username }).select("username bio date"); 
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
 
+        res.json(user);
+        
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send("Internal server error");
+    }
+});
+
+//Route 5: Change the user bio
+router.post('/changebio/:id', fetchuser, async (req, res) => {
+  try {
+    const { bio } = req.body;
+
+    if (!bio || bio.trim() === '') {
+      return res.status(400).json({ error: "Bio cannot be empty" });
+    }
+
+    let user = await User.findById(req.params.id);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    user = await User.findByIdAndUpdate(
+      req.params.id,
+      { $set: { bio: bio } },
+      { new: true }
+    );
+
+    res.json({ bio: user.bio });
+  } catch (error) {
+    console.error(error.message);
+    res.status(500).send("Internal server error");
+  }
+});
 
 module.exports = router;

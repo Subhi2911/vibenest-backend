@@ -17,9 +17,14 @@ const UserSchema = mongoose.Schema({
         required:true
     },
     date: {
-    type: Date,
-    default: Date.now
+        type: Date,
+        default: Date.now
+    },
+    bio:{
+        type:String,
+        default:'Hey there!! I enjoy writing blogs.What about you?'
     }
+    
 })
 
 const User = mongoose.model('user', UserSchema);

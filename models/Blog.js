@@ -35,7 +35,11 @@ const BlogSchema = new mongoose.Schema({
   averageRating: {
     type: Number,
     default: 0
-}
+  },
+  category:{
+    type:String,
+    default:'general'
+  }
 
 }, { timestamps: true });
 
