@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const BlogSchema = new mongoose.Schema({
   author: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'user'
+    ref: 'User'
   },
   imageurl: {
     type: String,
@@ -43,4 +43,4 @@ const BlogSchema = new mongoose.Schema({
 
 }, { timestamps: true });
 
-module.exports = mongoose.model('blogs', BlogSchema);
+module.exports = mongoose.model('Blog', BlogSchema);
