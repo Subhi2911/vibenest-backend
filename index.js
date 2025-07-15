@@ -27,6 +27,8 @@ const upload = multer({ storage });
 
 app.use('/api/auth', require('./routes/auth'))
 app.use('/api/blogs', require('./routes/blogs'))
+app.use('/api/notifications', require('./routes/notifications'));
+
 
 // Route to upload image
 app.post('/upload-image', upload.single('image'), async (req, res) => {

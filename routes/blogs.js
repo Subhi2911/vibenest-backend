@@ -6,6 +6,7 @@ const router = express.Router();
 const multer = require('multer');
 const path = require('path');
 const User = require('../models/User')
+const Notification = require('../models/Notification');
 
 const storage = multer.diskStorage({
   destination: './uploads/',
@@ -142,42 +143,34 @@ router.get('/authorblog/username/:username', async (req, res) => {
 
 //Route:7 Rating a blog
 router.post('/:id/rate', fetchuser, async (req, res) => {
-  try {
-    const blogId = req.params.id;
-    const rating = req.body.rating;
-    const user = req.user.id; // ✅ Securely extracted from token
+    try {
+        const blog = await Blog.findById(req.params.id).populate('author');
+        if (!blog) return res.status(404).send("Blog not found");
 
-    if (!rating || rating < 1 || rating > 5) {
-      return res.status(400).json({ error: 'Invalid rating' });
+        const { rating } = req.body;
+        const userId = req.user.id;
+
+        // Update blog rating
+        blog.ratings.push({ user: userId, rating });
+        const avgRating = blog.ratings.reduce((acc, r) => acc + r.rating, 0) / blog.ratings.length;
+        blog.averageRating = avgRating;
+        await blog.save();
+
+        // Create a notification
+        if (blog.author._id.toString() !== userId) {
+            const notification = new Notification({
+                toUser: blog.author._id,
+                blog: blog._id,
+                message: `Your blog "${blog.title}" was rated ⭐${rating}/5`
+            });
+            await notification.save();
+        }
+
+        res.json({ success: true, averageRating: blog.averageRating });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send("Server Error");
     }
-
-    const blog = await Blog.findById(blogId);
-    if (!blog) {
-      return res.status(404).json({ error: 'Blog not found' });
-    }
-
-    if (!blog.ratings) blog.ratings = [];
-
-    // Check if this user has already rated
-    const existingRatingIndex = blog.ratings.findIndex(r => r.user && r.user.toString() === user);
-
-    if (existingRatingIndex !== -1) {
-      blog.ratings[existingRatingIndex].rating = rating;
-    } else {
-      blog.ratings.push({ user, rating });
-    }
-
-    // Recalculate average rating
-    const sum = blog.ratings.reduce((acc, r) => acc + r.rating, 0);
-    blog.averageRating = sum / blog.ratings.length;
-
-    await blog.save();
-
-    res.json({ message: 'Rating saved or updated',averageRating: parseFloat(blog.averageRating.toFixed(1))});
-  } catch (error) {
-    console.error('Error saving rating:', error);
-    res.status(500).json({ error: 'Server error' });
-  }
 });
 
 //Route:8 fetching blogs by categories
@@ -194,6 +187,27 @@ router.get('/categoryblog/:category',async(req,res)=>{
     res.status(500).json({ error: 'Server error' });
   }
 })
+
+
+
+
+// router.post('/:id/rate', fetchuser, async (req, res) => {
+//     const blog = await Blog.findById(req.params.id).populate('author');
+//     // ... rating logic ...
+
+//     // Save notification for author
+//     // if (blog.author._id.toString() !== req.user.id) {
+//     //     const newNotification = new Notification({
+//     //         userId: blog.author._id,
+//     //         blogId: blog._id,
+//     //         message: `${req.user.name} rated your blog "${blog.title}"`,
+//     //     });
+//     //     await newNotification.save();
+//     // }
+
+//     res.json({ success: true });
+// });
+
 
 
 
