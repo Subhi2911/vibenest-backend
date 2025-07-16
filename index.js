@@ -10,7 +10,13 @@ const port = 5000;
 
 connectToMongo();
 
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 
+     'https://vibenest-publish-your-own-blogs.onrender.com'
+    ],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
 app.use(express.json());
 // Configure Cloudinary
 cloudinary.config({

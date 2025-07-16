@@ -219,6 +219,34 @@ router.get('/categoryblog/:category', async (req, res) => {
     }
 });
 
+//Route:9 Import your Blog model and fetchuser middleware at top
+router.get('/:id/ratings', fetchuserOptional, async (req, res) => {
+    try {
+        const blog = await Blog.findById(req.params.id);
+        if (!blog) return res.status(404).send("Blog not found");
+
+        const userId = req.user ? req.user.id : null;
+
+        // Average rating
+        const avgRating = blog.ratings.length > 0
+            ? blog.ratings.reduce((acc, r) => acc + r.rating, 0) / blog.ratings.length
+            : 0;
+
+        // User rating (if logged in)
+        let userRating = 0;
+        if (userId) {
+            const found = blog.ratings.find(r => r.user.toString() === userId);
+            userRating = found ? found.rating : 0;
+        }
+
+        res.json({ averageRating: avgRating, userRating });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send("Server Error");
+    }
+});
+
+
 
 
 module.exports = router;
